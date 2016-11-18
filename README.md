@@ -1,40 +1,25 @@
-# TRIM patcher #
+# TB3 enabler #
 
-**This project is made obsolete by El Capitan, which enables TRIM for third party SSDs out of the box.**
-
-Based on Grant Pannell [information](http://digitaldj.net/2011/07/21/trim-enabler-for-lion/) about how to patch
-Lion properly to enable TRIM support on non-Apple branded
-SSDs, here's a script that ought to make it harder to shoot
-yourself in the foot.
-
-## Important note about Yosemite ##
-
-Yosemite now signs kexts and refuses to load unsigned ones. This means a patched version won't load, hence your Mac won't boot. If you still want to use TRIM patcher on Yosemite, you can use the following command to allow unsigned kexts to load:
-
-    nvram boot-args=kext-dev-mode=1
-
-This comes at a price though, as you're lowering one level of defense in your system security.
+For unknown reasons, Apple decided to block the support for some categories of Thunderbolt 3 peripherals under macOS and when you connect those Thunderbolt 3 peripheral, you simply get an "Unsupported" message under Thunderbolt Device Tree. After digging around, it turns out the block is implemented in software level and it is possible to bypass the block by patching the related kext. This patch modifies IOThunderboltFamily and allows "Unsupported" Thunderbolt 3 peripherals to work under macOS Sierra.
 
 ## Warning ##
 
-I took most steps I could to ensure kitten safety, but can make no warranty.In any case you're on your own. This is ultimately a sensitive hack and you take full responsibility by running this script.
+I cannot be sure whether blocking the Thunderbolt 3 peripherals is purely a business decision or actually trying to protect MacBook Pro defected Thunderbolt 3 peripherals. However, given those peripherals work fine under Windows via Boot Camp, it doesn't look like the block exists for protection.
 
-I have tested this successfully on a MacBook Pro 5,5 with Mac OS X 10.7.1 upgraded from 10.7 and a SATA-II Samsung 470 Series 128G in the HD slot. The patched file is the same as in 10.7. I later tested it on 10.7.2.
+I took most steps I could to ensure kitten safety, but can make no warranty. In any case you're on your own. This is ultimately a sensitive hack and you take full responsibility by running this script.
+
+I have tested the patch on MacBook Pro 13,3 with macOS 10.12.1 (16B2659) and there are reports of this working with MacBook Pro 13,1.
 
 ## Usage ##
 
-Simply start up a terminal and run the script:
+1. [Disable](https://developer.apple.com/library/content/documentation/Security/Conceptual/System_Integrity_Protection_Guide/ConfiguringSystemIntegrityProtection/ConfiguringSystemIntegrityProtection.html) System Integrity Protection
+2. Run the script from Terminal
 
-    python trim_patcher.py
-
-As the kext cache gets cleared upon success you might find it seems to 
-take some time to complete.
-
-Once the script ends, reboot.
-
-You can then check if it was taken into account via the System Profiler: go to Serial-ATA and look for "TRIM support: yes".
-
-It is debated whether Sandforce-based SSDs (or other recent auto-GC SSDs) actually need this, both performance-wise and wear-wise.
+    ```
+    tb3-enabler.py apply
+    ```
+    
+3. Reboot
 
 ## Available arguments ##
 
@@ -52,6 +37,4 @@ In any case of changing success, the kext cache gets cleared.
 
 ## Thanks ##
  
-- [Grant Pannell](http://digitaldj.net/2011/07/21/trim-enabler-for-lion/)
-- [digital_dreamer](http://www.insanelymac.com/forum/index.php?s=523f85101e81849b73e6333ed420c6de&showtopic=256493&st=0&p=1680183&#entry1680183)
-
+- [netkas](http://forum.netkas.org/index.php/topic,11654.msg34142.html#msg34142)

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Modified based on Loic Nageleisen's trim_patcher
+# https://github.com/lloeki/trim_patcher/
+
 import os
 import sys
 import re
@@ -11,87 +14,27 @@ import shlex
 ORIGINAL = 'original'
 PATCHED = 'patched'
 
-target = ("/System/Library/Extensions/IOAHCIFamily.kext/"
-          "Contents/PlugIns/IOAHCIBlockStorage.kext/"
-          "Contents/MacOS/IOAHCIBlockStorage")
+target = ("/System/Library/Extensions/IOThunderboltFamily.kext/"
+          "Contents/MacOS/IOThunderboltFamily")
 backup = "%s.original" % target
 
 md5_version = {
-    "25a29cbdbb89329a6ce846c9b05af5f0": ["10.6.8"],
-    "155b426c856c854e54936339fbc88d72": ["10.7"],
-    "00bd8e1943e09f2bd12468882aad0bbb": ["10.7.1"],
-    "38100e96270dcb63d355ea8195364bf5": ["10.7.2"],
-    "d2c20ed8211bf5b96c4610450f56c1c3": ["10.7.3"],
-    "48e392b3ca7267e1fd3dd50a20396937": ["10.7.4"],
-    "583d7bbcbe5c5d06d7877d6ccb6c5699": ["10.7.5"],
-    "ff7a9115779fa5923950cbdc6ffb273d": ["10.8"],
-    "03d3a46c6d713b00980bc9be453755ff": ["10.8.1"],
-    "85390d06d5aad08b471cf9b7cd69aff4": ["10.8.2 (12C60)"],
-    "c3df44c5ccb86b423e17406f6f9a2bd1": ["10.8.2 (12C3006/12C3012)"],
-    "8bbf5f3928d55dc9ec8017b37a6748f8": ["10.8.3 (12D78)"],
-    "8c5a53a607ffb335c039bad220fa0230": ["10.8.5"],
-    "8a6e253e621db78e1fa0d14274ade63c": ["10.9"],
-    "a11100b558cade33c35924f08924a728": ["10.9.2"],
-    "3e794ede0ec1becce65c580a6efceaca": ["10.9.3"],
-    "2a8c2b865eba74fe0c5ca8bfa9f7d603": ["10.9.4"],
-    "538221c151b847490fbac997e1776d82": ["10.9.5"],
+    "00e2f0eb5db157462a83e4de50583e33": ["10.12.1 (16B2659)"],
 }
 md5_patch = {
-    "25a29cbdbb89329a6ce846c9b05af5f0": "d76b57daf4d4c2ff5b52bc7b4b2dcfc1",
-    "155b426c856c854e54936339fbc88d72": "945944136009c9228fffb513ab5bf734",
-    "00bd8e1943e09f2bd12468882aad0bbb": "155b426c856c854e54936339fbc88d72",
-    "38100e96270dcb63d355ea8195364bf5": "5762b2fbb259101c361e5414c349ffa1",
-    "d2c20ed8211bf5b96c4610450f56c1c3": "15901d7c6fd99f5dd9c5ca493de6109b",
-    "48e392b3ca7267e1fd3dd50a20396937": "a2f64369e775c76be4ec03ce5172a294",
-    "583d7bbcbe5c5d06d7877d6ccb6c5699": "a81d7e61a744b0d27f17cad5d441fccb",
-    "ff7a9115779fa5923950cbdc6ffb273d": "4d265ac3f471b0ef0578d5dbb1eafadb",
-    "03d3a46c6d713b00980bc9be453755ff": "1c3cfe37c7716a9b4e2a5d7a6c72b997",
-    "85390d06d5aad08b471cf9b7cd69aff4": "181941753186a9c292ae9279040fb023",
-    "c3df44c5ccb86b423e17406f6f9a2bd1": "59a2b95b7c7695d9ea29adc8e3a5945d",
-    "8bbf5f3928d55dc9ec8017b37a6748f8": "ff48b74b876f58969768b5436523bca9",
-    "8c5a53a607ffb335c039bad220fa0230": "fa1ad2aed34ce95585c13765d831ee65",
-    "8a6e253e621db78e1fa0d14274ade63c": "17dc2e1edc35447ea693a29aef969f21",
-    "a11100b558cade33c35924f08924a728": "3409ad454e58f6415c38ab2b9e39d64d",
-    "3e794ede0ec1becce65c580a6efceaca": "3ae907c12b58e2e682e215627c87be67",
-    "2a8c2b865eba74fe0c5ca8bfa9f7d603": "9a254024a1c43a102a5c558a6510413e",
-    "538221c151b847490fbac997e1776d82": "6c012761dcbf71437ee1274380347e92",
+    "00e2f0eb5db157462a83e4de50583e33": "a6c2143c2f085c2c104369d7a1adfe03"
 }
 md5_patch_r = dict((v, k) for k, v in md5_patch.items())
 
 re_index = [
     {
-        'search': ("(\x52\x6F\x74\x61\x74\x69\x6F\x6E\x61\x6C"
-                   "\x00{1,20})[^\x00]{9}(\x00{1,20}[^\x00])"),
-        'replace': "\\1\x00\x00\x00\x00\x00\x00\x00\x00\x00\\2"
-    },
-    {
-        'search': ("(\x4F\x6E\x57\x61\x6B\x65\x4B\x65\x79\x0A"
-                   "\x00{1,20})[^\x00]{9}(\x00{1,20}[^\x00])"),
-        'replace': "\\1\x00\x00\x00\x00\x00\x00\x00\x00\x00\\2"
-    },
+        'search': "\x55\x48\x89\xE5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\x38\x01",
+        'replace': "\x55\x48\x89\xE5\x31\xC0\x5D\xC3\x41\x55\x41\x54\x53\x48\x81\xEC\x38\x01"
+    }
 ]
 re_md5 = {
     0: [
-        "25a29cbdbb89329a6ce846c9b05af5f0",
-        "155b426c856c854e54936339fbc88d72",
-        "00bd8e1943e09f2bd12468882aad0bbb",
-        "38100e96270dcb63d355ea8195364bf5",
-        "d2c20ed8211bf5b96c4610450f56c1c3",
-        "48e392b3ca7267e1fd3dd50a20396937",
-        "583d7bbcbe5c5d06d7877d6ccb6c5699",
-        "ff7a9115779fa5923950cbdc6ffb273d",
-        "03d3a46c6d713b00980bc9be453755ff",
-        "85390d06d5aad08b471cf9b7cd69aff4",
-        "c3df44c5ccb86b423e17406f6f9a2bd1",
-        "8bbf5f3928d55dc9ec8017b37a6748f8",
-        "8c5a53a607ffb335c039bad220fa0230",
-        "8a6e253e621db78e1fa0d14274ade63c",
-        "a11100b558cade33c35924f08924a728",
-        "3e794ede0ec1becce65c580a6efceaca",
-        ],
-    1: [
-        "2a8c2b865eba74fe0c5ca8bfa9f7d603",
-        "538221c151b847490fbac997e1776d82",
+        "00e2f0eb5db157462a83e4de50583e33",
         ],
 }
 md5_re = dict((v, re_index[k]) for k, l in re_md5.items() for v in l)
@@ -108,6 +51,11 @@ def md5(filename):
 def backquote(command):
     return Popen(shlex.split(command), stdout=PIPE).communicate()[0]
 
+def check_SIP():
+    sip_info = backquote("nvram csr-active-config")
+    if sip_info.find("w%00%00%00") == -1:
+        print >> sys.stderr, "you must disable System Integrity Protection"
+        sys.exit(1)
 
 def check_rootness():
     if os.geteuid() != 0:
@@ -173,15 +121,9 @@ def apply_patch():
 def perform_backup():
     shutil.copyfile(target, backup)
 
-
-def is_trim_enabled():
-    trim_info = backquote("system_profiler SPSerialATADataType"
-                          " -detailLevel mini")
-    return trim_info.find("TRIM Support: Yes") != -1
-
-
 def do_backup():
     check_rootness()
+    check_SIP()
     try:
         s, t = target_status()
         if s == PATCHED:
@@ -208,6 +150,7 @@ def do_backup():
 
 def do_restore():
     check_rootness()
+    check_SIP()
     print "restoring...",
     backup_status()
     shutil.copyfile(backup, target)
@@ -217,6 +160,7 @@ def do_restore():
 
 def do_apply():
     check_rootness()
+    check_SIP()
     do_backup()
     try:
         s, v = target_status()
@@ -258,11 +202,6 @@ def do_status():
         print "none"
     except UnknownFile as e:
         print "unknown (md5=%s)" % e.md5
-
-    if is_trim_enabled():
-        print "TRIM: enabled"
-    else:
-        print "TRIM: disabled"
 
 
 def do_diff():
