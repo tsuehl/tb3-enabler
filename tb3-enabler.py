@@ -20,7 +20,7 @@ backup = "%s.original" % target
 
 md5_version = {
     "00e2f0eb5db157462a83e4de50583e33": ["10.12.1 (16B2659)"],
-    "ebde660af1f51dc7482551e8d07c62fd": ["10.12.2 (16C67)"],
+    "ebde660af1f51dc7482551e8d07c62fd": ["10.12.2 (16C67)"]
 }
 md5_patch = {
     "00e2f0eb5db157462a83e4de50583e33": "a6c2143c2f085c2c104369d7a1adfe03",
@@ -37,6 +37,7 @@ re_index = [
 re_md5 = {
     0: [
         "00e2f0eb5db157462a83e4de50583e33",
+        "ebde660af1f51dc7482551e8d07c62fd"
         ],
 }
 md5_re = dict((v, re_index[k]) for k, l in re_md5.items() for v in l)
