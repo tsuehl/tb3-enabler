@@ -21,12 +21,14 @@ backup = "%s.original" % target
 md5_version = {
     "00e2f0eb5db157462a83e4de50583e33": ["10.12.1 (16B2659)"],
     "ebde660af1f51dc7482551e8d07c62fd": ["10.12.2 (16C67)"],
-    "7fbc510cf91676739d638e1319d44e0e": ["10.12.3 (16D32)"]
+    "7fbc510cf91676739d638e1319d44e0e": ["10.12.3 (16D32)"],
+    "33ff6f5326eba100d4e7c490f9bbf91e": ["10.12.4 (16E195)"]
 }
 md5_patch = {
     "00e2f0eb5db157462a83e4de50583e33": "a6c2143c2f085c2c104369d7a1adfe03",
     "ebde660af1f51dc7482551e8d07c62fd": "2ebb68137da4a1cb0dfc6e6f05be3db2",
-    "7fbc510cf91676739d638e1319d44e0e": "0af475c26cdf5e26f8fd7e4341dadea5"
+    "7fbc510cf91676739d638e1319d44e0e": "0af475c26cdf5e26f8fd7e4341dadea5",
+    "33ff6f5326eba100d4e7c490f9bbf91e": "9237f013ab92f7eb5913bd142abf5fae"
 }
 md5_patch_r = dict((v, k) for k, v in md5_patch.items())
 
@@ -40,7 +42,8 @@ re_md5 = {
     0: [
         "00e2f0eb5db157462a83e4de50583e33",
         "ebde660af1f51dc7482551e8d07c62fd",
-        "7fbc510cf91676739d638e1319d44e0e"
+        "7fbc510cf91676739d638e1319d44e0e",
+        "33ff6f5326eba100d4e7c490f9bbf91e"
         ],
 }
 md5_re = dict((v, re_index[k]) for k, l in re_md5.items() for v in l)
