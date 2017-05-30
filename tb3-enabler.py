@@ -3,6 +3,7 @@
 # Modified based on Loic Nageleisen's trim_patcher
 # https://github.com/lloeki/trim_patcher/
 
+from __future__ import print_function
 import os
 import sys
 import re
@@ -66,20 +67,20 @@ def backquote(command):
 def check_SIP():
     sip_info = backquote("nvram csr-active-config")
     if sip_info.find("w%00%00%00") == -1:
-        print >> sys.stderr, "you must disable System Integrity Protection"
+        print("you must disable System Integrity Protection",file=sys.stderr)
         sys.exit(1)
 
 def check_rootness():
     if os.geteuid() != 0:
-        print >> sys.stderr, "you must be root"
+        print("you must be root",file=sys.stderr)
         sys.exit(1)
 
 
 def clear_kext_cache():
-    print "clearing kext cache...",
+    print( "clearing kext cache...",end="")
     backquote("kextcache -system-prelinked-kernel")
     backquote("kextcache -system-caches")
-    print "done"
+    print("done")
 
 
 class UnknownFile(Exception):
@@ -139,34 +140,34 @@ def do_backup():
     try:
         s, t = target_status()
         if s == PATCHED:
-            print "already patched, won't backup"
+            print("already patched, won't backup")
             sys.exit(1)
         else:
             try:
                 _, v = backup_status()
             except NoBackup:
-                print "backing up...",
+                print( "backing up...",end="")
                 perform_backup()
-                print "done"
+                print( "done")
             else:
                 if v == t:
-                    print "backup found"
+                    print("backup found")
                 else:
-                    print "backing up...",
+                    print("backing up...",end="")
                     perform_backup()
-                    print "done"
+                    print("done")
     except UnknownFile as e:
-        print "unknown file, won't backup (md5=%s)" % e.md5
+        print( "unknown file, won't backup (md5=%s)" % e.md5)
         sys.exit(1)
 
 
 def do_restore():
     check_rootness()
     check_SIP()
-    print "restoring...",
+    print("restoring...",end="")
     backup_status()
     shutil.copyfile(backup, target)
-    print "done"
+    print("done")
     clear_kext_cache()
 
 
@@ -177,54 +178,54 @@ def do_apply():
     try:
         s, v = target_status()
         if s == PATCHED:
-            print "already patched"
+            print("already patched")
             sys.exit()
     except UnknownFile as e:
-        print "unknown file: won't patch (md5=%s)" % e.md5
+        print("unknown file: won't patch (md5=%s)" % e.md5)
         sys.exit(1)
 
-    print "patching...",
+    print("patching...",end="")
     apply_patch()
 
     try:
         s, v = target_status()
         if s != PATCHED:
-            print "no change made"
+            print("no change made")
         else:
-            print "done"
+            print("done")
             clear_kext_cache()
     except UnknownFile as e:
-        print "failed (md5=%s), " % e.md5,
+        print("failed (md5=%s), " % e.md5,end="")
         do_restore()
 
 
 def do_status():
     try:
-        print "target:",
+        print("target:",end="")
         s, v = target_status()
-        print s+',', ' or '.join(v)
+        print( s+',', ' or '.join(v))
     except UnknownFile as e:
-        print "unknown (md5=%s)" % e.md5
+        print( "unknown (md5=%s)" % e.md5)
 
     try:
-        print "backup:",
+        print("backup:",end="")
         s, v = backup_status()
-        print s+',', ' or '.join(v)
+        print( s+',', ' or '.join(v))
     except NoBackup:
-        print "none"
+        print( "none")
     except UnknownFile as e:
-        print "unknown (md5=%s)" % e.md5
+        print( "unknown (md5=%s)" % e.md5)
 
 
 def do_diff():
     try:
         backup_status()
     except NoBackup:
-        print "no backup"
+        print("no backup")
     else:
         command = ("bash -c "
                    "'diff <(xxd \"%s\") <(xxd \"%s\")'" % (backup, target))
-        print os.system(command)
+        print(os.system(command))
 
 
 commands = {
@@ -239,9 +240,9 @@ try:
     function = commands[sys.argv[1]]
     function()
 except IndexError:
-    print >> sys.stderr, "no command provided"
-    print >> sys.stderr, "list of commands: %s" % ', '.join(commands.keys())
+    print("no command provided",file=sys.stderr)
+    print("list of commands: %s" % ', '.join(commands.keys()),file=sys.stderr)
     sys.exit(1)
 except KeyError:
-    print >> sys.stderr, "unknown command"
+    print ("unknown command",file=sys.stderr)
     sys.exit(1)
