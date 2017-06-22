@@ -198,6 +198,25 @@ def do_apply():
         print("failed (md5=%s), " % e.md5,end="")
         do_restore()
 
+def do_force_apply():
+    check_rootness()
+    check_SIP()
+    if os.path.exists(backup):
+        print("backup already exists. won't patch. Please remove the backup from %s and try again." % backup, end="")
+        sys.exit(1)
+    h = md5(target)
+    print("original md5=%s " % h, end="")
+    perform_backup()
+    with open(target, 'rb') as f:
+        source_data = f.read()
+    search_re = "\x55\x48\x89\xE5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\x38\x01"
+    replace_re = "\x55\x48\x89\xE5\x31\xC0\x5D\xC3\x41\x55\x41\x54\x53\x48\x81\xEC\x38\x01"
+    patched_data = re.sub(search_re, replace_re, source_data)
+    with open(target, 'wb') as out:
+        out.write(patched_data)
+    h = md5(target)
+    print("done, patched md5=%s" % h, end="")
+    clear_kext_cache()
 
 def do_status():
     try:
@@ -234,6 +253,7 @@ commands = {
     'apply': do_apply,
     'restore': do_restore,
     'diff': do_diff,
+    'forceApply': do_force_apply,
 }
 
 try:
